@@ -1,0 +1,25 @@
+APP = go-get-d
+
+GOFLAGS ?= -v -mod=vendor
+GOFLAGS_TEST ?= -race -cover
+
+ARGS ?= 
+
+.EXPORT_ALL_VARIABLES:
+
+.PHONY: $(APP)
+$(APP):
+	go build .
+
+build: $(BIN)
+
+default: build
+
+run:
+	go run . $(ARGS)
+
+test: test-unit
+
+.PHONY: test-unit
+test-unit:
+	go test $(GOFLAGS_TEST) . $(ARGS)
