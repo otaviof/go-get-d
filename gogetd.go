@@ -86,8 +86,8 @@ func (g *GoGetD) CloneRepository() error {
 
 // InspectModulePackage tries to load the module, inspecting if it's correctly loading.
 func (g *GoGetD) InspectModulePackage() error {
-	cfg := &packages.Config{Mode: packages.NeedName, Dir: g.dir}
-	pkgs, err := packages.Load(cfg, g.module)
+	fmt.Println("# Inspecting Go package...")
+	pkgs, err := packages.Load(&packages.Config{Mode: packages.NeedName, Dir: g.dir}, g.module)
 	if err != nil {
 		return err
 	}
@@ -98,8 +98,7 @@ func (g *GoGetD) InspectModulePackage() error {
 	if lenPkgs != 1 {
 		return fmt.Errorf("found %d packages for module named %q", lenPkgs, g.module)
 	}
-
-	fmt.Println("# Go module is ready to use!")
+	fmt.Println("# All done!")
 	return nil
 }
 
