@@ -5,17 +5,20 @@
 
 ## Abstract
 
-This application brings back the `go get -d` functionality back to modern Go. If you're looking for a helper tool to organize Go projects under `${GOPATH}`, this is for you!
+This application brings back the `go get -d` functionality to modern Go. If you're looking for a helper tool to organize Go projects under `${GOPATH}`, this is for you!
 
 ## Installing
 
+The best way to install is through `go install`, as the example below:
 
-```
+
+```bash
 go install github.com/otaviof/go-get-d@latest
 ```
 
 ## Usage
 
+The usage is straight forward, the only input required is the import name.
 
 ```bash
 go-get-d [import]
