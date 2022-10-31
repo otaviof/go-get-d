@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"os/exec"
@@ -18,6 +21,7 @@ type GoGetD struct {
 	module        string   // valid golang import, extracted from "input"
 	repositoryURL *url.URL // module repository URL
 	dir           string   // path to the module inside GOPATH
+	fullDir       string   // printable directory full path
 }
 
 // ParseURL parses the input given to GoGetD in order to assert it's a valid URL, and to extract the
@@ -50,8 +54,14 @@ func (g *GoGetD) LookupModuleDirInGopath() error {
 	}
 
 	g.dir = path.Join(gopath, path.Join("src", g.module))
-	fmt.Printf("# Directory: %q\n", strings.ReplaceAll(g.dir, gopath, "${GOPATH}"))
+	g.fullDir = strings.ReplaceAll(g.dir, gopath, "${GOPATH}")
+	fmt.Printf("# Directory: %q\n", g.fullDir)
 	return nil
+}
+
+// PrintChangeDir prints the full directory path with "cd" command in front.
+func (g *GoGetD) PrintChangeDir() {
+	fmt.Printf("cd %q\n", g.fullDir)
 }
 
 // ModuleDirExits checks if the module directory path exists.
@@ -72,15 +82,23 @@ func (g *GoGetD) CloneRepository() error {
 
 	gitCloneArgs := []string{"clone", g.repositoryURL.String(), g.dir}
 	cmd := exec.Command("git", gitCloneArgs...)
-	cmd.Stderr = os.Stderr
 
 	fmt.Println("# Cloning repository...")
-	fmt.Printf("$ %s\n", cmd.String())
-	out, err := cmd.Output()
+	fmt.Printf("# $ %s\n", cmd.String())
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return err
 	}
-	fmt.Print(string(out))
+
+	bytesReader := bytes.NewReader(out)
+	bufferReader := bufio.NewReader(bytesReader)
+	for {
+		line, _, err := bufferReader.ReadLine()
+		if err == io.EOF {
+			break
+		}
+		fmt.Printf("## %s\n", line)
+	}
 	return nil
 }
 

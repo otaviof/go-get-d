@@ -20,36 +20,40 @@ go install github.com/otaviof/go-get-d@latest
 
 The usage is straight forward, the only input required is the import name.
 
+## Shell Eval
+
+A practical way to `git clone` and enter the repository directory is using `go-get-d` output as a shell `eval` expession. The shell will pick up the uncommented `cd` command and run immediately, for instance:
+
 ```bash
-go-get-d [import]
+eval "$(go-get-d github.com/otaviof/go-get-d)"
+```
+
+Producing the following outcome:
+
+```
+$ eval "$(go-get-d github.com/otaviof/go-get-d)"
+$ pwd
+/home/otaviof/go/src/github.com/otaviof/go-get-d
+```
+
+## Inspect Import
+
+You can additionally inspect the import searching for `main` package to `go build` the project executable. To inspect the import use `go-get-d --inspect`, i.e.:
+
+
+```bash
+go-get-d --inspect [import]
 ```
 
 For example:
 
 ```
-$ go-get-d github.com/otaviof/go-get-d
+$ go-get-d --inspect github.com/otaviof/go-get-d
 # Go Module: "github.com/otaviof/go-get-d"
 # Directory: "${GOPATH}/src/github.com/otaviof/go-get-d"
 # Cloning repository...
 $ git clone https://github.com/otaviof/go-get-d ~/go/src/github.com/otaviof/go-get-d
-Cloning into '/Users/otaviof/go/src/github.com/otaviof/go-get-d'...
-warning: redirecting to https://github.com/otaviof/go-get-d/
-remote: Enumerating objects: 3532, done.
-remote: Counting objects: 100% (152/152), done.
-remote: Compressing objects: 100% (91/91), done.
-remote: Total 3532 (delta 86), reused 91 (delta 52), pack-reused 3380
-Receiving objects: 100% (3532/3532), 1.40 MiB | 11.77 MiB/s, done.
-Resolving deltas: 100% (2208/2208), done.
-# Inspecting Go package...
-# All done!
-```
-
-And then:
-
-```
-$ go-get-d github.com/otaviof/go-get-d
-# Go Module: "github.com/otaviof/go-get-d"
-# Directory: "${GOPATH}/src/github.com/otaviof/go-get-d"
+## Cloning into '/Users/otaviof/go/src/github.com/otaviof/go-get-d'...
 # Inspecting Go package...
 # All done!
 ```

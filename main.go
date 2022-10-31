@@ -15,6 +15,16 @@ var rootCmd = &cobra.Command{
 	SilenceUsage: true,
 }
 
+// inspect flag to enable target package inspection
+var inspect = false
+
+// init load the flags
+func init() {
+	f := rootCmd.PersistentFlags()
+
+	f.BoolVarP(&inspect, "inspect", "i", false, "inspect package and build target executable")
+}
+
 // PreRunE validates the arguments, one module must be informed.
 func PreRunE(_ *cobra.Command, args []string) error {
 	if len(args) != 1 {
@@ -27,17 +37,24 @@ func PreRunE(_ *cobra.Command, args []string) error {
 func RunE(_ *cobra.Command, args []string) error {
 	g := NewGoGetD(args[0])
 
-	var err error
-	if err = g.ParseURL(); err != nil {
+	err := g.ParseURL()
+	if err != nil {
 		return err
 	}
+
 	if err = g.LookupModuleDirInGopath(); err != nil {
 		return err
 	}
+	g.PrintChangeDir()
+
 	if !g.ModuleDirExits() {
 		if err = g.CloneRepository(); err != nil {
 			return err
 		}
+	}
+
+	if !inspect {
+		return nil
 	}
 	return g.InspectModulePackage()
 }
