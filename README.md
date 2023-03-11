@@ -1,34 +1,59 @@
+[![test][workflowsTestBadge]][workflowsTest]
+
 `go-get-d`
 ----------
 
-[![CI][projectBadgeSVG]](https://github.com/otaviof/go-get-d/actions/workflows/test.yaml)
-
 ## Abstract
 
-This application brings back the `go get -d` functionality to modern Go. If you're looking for a helper tool to organize Go projects under `${GOPATH}`, this is for you!
+This application brings back the `go get -d` functionality to *modern* Go. If you're looking for a helper tool to organize Go projects under `${GOPATH}`, this is for you!
 
-## Installing
+The classic `go get -d` use to clone the import repository and build the application right away, placing the executable on the `${GOPATH}/bin` directory. Nowadays, you adopt the `go install` if the idea is only install the application executable.
 
-The best way to install is through `go install`, as the example below:
+Thus `go-get-d` is most useful for a developer to quickly get started on a Go repository, using the "classic" `${GOPATH}` organization style.
+
+## Installation
+
+Use `go install` as the following example:
 
 
 ```bash
 go install github.com/otaviof/go-get-d@latest
 ```
 
+When working on this repository you can alternatively use the `install` target, i.e.:
+
+```bash
+make install
+```
+
+The executable is placed on `${GOPATH}/bin`.
+
 ## Usage
 
-The usage is straight forward, the only input required is the import name.
+The usage is straightforward, the only input required is the import name. For instance:
+
+```bash
+go-get-d github.com/otaviof/go-get-d
+```
 
 ## Shell Eval
 
-A practical way to `git clone` and enter the repository directory is using `go-get-d` output as a shell `eval` expession. The shell will pick up the uncommented `cd` command and run immediately, for instance:
+A practical way to clone the import repository and enter the directory, is using `go-get-d` output as a shell `eval` expession. The shell will pick executed the uncommented commands, i.e.:
 
 ```bash
 eval "$(go-get-d github.com/otaviof/go-get-d)"
 ```
 
-Producing the following outcome:
+The output produced follow the snippet below:
+
+```
+$ go-get-d github.com/otaviof/go-get-d
+# Go Module: "github.com/otaviof/go-get-d"
+# Directory: "${GOPATH}/src/github.com/otaviof/go-get-d"
+cd "${GOPATH}/src/github.com/otaviof/go-get-d"
+```
+
+After you run the `eval`, the current directory will change accordingly:
 
 ```
 $ eval "$(go-get-d github.com/otaviof/go-get-d)"
@@ -38,8 +63,7 @@ $ pwd
 
 ## Inspect Import
 
-You can additionally inspect the import searching for `main` package to `go build` the project executable. To inspect the import use `go-get-d --inspect`, i.e.:
-
+You can additionally *inspect* the given import searching for the `main` package, when found it will be subject to `go build`, creating the application executable. Please consider the usage of the `--inspect` flag:
 
 ```bash
 go-get-d --inspect [import]
@@ -57,6 +81,7 @@ $ git clone https://github.com/otaviof/go-get-d ~/go/src/github.com/otaviof/go-g
 # Inspecting Go package...
 # All done!
 ```
+The `--inspect` will act as `go install`, therefore the application executable is stored on the `${GOPATH}/bin`.
 
-[projectBadgeSVG]: https://github.com/otaviof/go-get-d/actions/workflows/test.yaml/badge.svg
-[projectTestWorkflow]: https://github.com/otaviof/go-get-d/actions/workflows/test.yaml
+[workflowsTest]: https://github.com/otaviof/go-get-d/actions/workflows/test.yaml
+[workflowsTestBadge]: https://github.com/otaviof/go-get-d/actions/workflows/test.yaml/badge.svg

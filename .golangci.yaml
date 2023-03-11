@@ -1,0 +1,23 @@
+---
+run:
+  timeout: 1m
+linters:
+  enable:
+    - asciicheck
+    - depguard
+    - errorlint
+    - gofmt
+    - goimports
+    - gosec
+    - importas
+    - misspell
+    - prealloc
+    - revive
+    - stylecheck
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+  disable:
+    - errcheck

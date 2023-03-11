@@ -1,9 +1,9 @@
 APP = go-get-d
 
-GOFLAGS ?= -v -mod=vendor
+GOFLAGS ?= -a -v
 GOFLAGS_TEST ?= -race -cover
 
-ARGS ?= 
+ARGS ?=
 
 .EXPORT_ALL_VARIABLES:
 

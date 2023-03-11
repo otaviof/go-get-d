@@ -28,7 +28,7 @@ jobs:
           path: src/github.com/otaviof/go-get-d
       - uses: actions/setup-go@v3
         with:
-          go-version: 1.19.x
+          go-version: 1.20.x
       # running the tests using a locally defined GOPATH as the default workspace directory, and also
       # making sure the step commands will be executed in the same location where the code is
       # located
