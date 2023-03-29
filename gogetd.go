@@ -75,7 +75,7 @@ func (g *GoGetD) ModuleDirExits() bool {
 
 // CloneRepository executes "git clone" into the GOPPATH based module directory.
 func (g *GoGetD) CloneRepository() error {
-	err := os.MkdirAll(g.dir, 0755)
+	err := os.MkdirAll(g.dir, 0o755)
 	if err != nil {
 		return err
 	}

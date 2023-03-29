@@ -15,10 +15,10 @@ var rootCmd = &cobra.Command{
 	SilenceUsage: true,
 }
 
-// inspect flag to enable target package inspection
+// inspect flag to enable target package inspection.
 var inspect = false
 
-// init load the flags
+// init load the command line persistent flags.
 func init() {
 	f := rootCmd.PersistentFlags()
 

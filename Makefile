@@ -26,3 +26,7 @@ test: test-unit
 .PHONY: test-unit
 test-unit:
 	go test $(GOFLAGS_TEST) . $(ARGS)
+
+.PHONY: verify
+verify:
+	golangci-lint run

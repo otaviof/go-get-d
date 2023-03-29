@@ -1,23 +1,130 @@
 ---
 run:
-  timeout: 1m
+  concurrency: 2
+  timeout: 10m
+  issues-exit-code: 1
+  tests: true
+  build-tags: []
+  skip-dirs: []
+  skip-dirs-use-default: false
+  skip-files: []
+  modules-download-mode: readonly
+  allow-parallel-runners: false
+  go: ""
+
+output:
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: false
+  path-prefix: ""
+  sort-results: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false
+  fix: false
+
 linters:
+  fast: false
   enable:
+    - asasalint
     - asciicheck
-    - depguard
+    - bidichk
+    - bodyclose
+    - contextcheck
+    - durationcheck
+    - errcheck
+    - errname
     - errorlint
+    - exportloopref
+    - gocritic
+    - godot
     - gofmt
+    - gofumpt
     - goimports
+    - gomoddirectives
     - gosec
-    - importas
+    - gosimple
+    - govet
+    - ineffassign
     - misspell
+    - nakedret
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
     - prealloc
+    - predeclared
+    - promlinter
+    - reassign
     - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
     - stylecheck
+    - tagliatelle
+    - tenv
+    - testableexamples
+    - thelper
     - tparallel
     - unconvert
     - unparam
     - unused
-    - whitespace
+    - usestdlibvars
+    - wastedassign
   disable:
-    - errcheck
+    - containedctx
+    - cyclop
+    - deadcode
+    - decorder
+    - depguard
+    - dogsled
+    - dupl
+    - dupword
+    - errchkjson
+    - execinquery
+    - exhaustive
+    - exhaustivestruct # Deprecated, replaced by check below.
+    - exhaustruct
+    - forbidigo
+    - forcetypeassert
+    - funlen
+    - gci
+    - ginkgolinter
+    - gocheckcompilerdirectives
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocyclo
+    - godox
+    - goerr113
+    - goheader
+    - golint
+    - gomnd
+    - gomodguard
+    - goprintffuncname
+    - grouper
+    - ifshort
+    - importas
+    - interfacebloat
+    - ireturn
+    - lll
+    - loggercheck
+    - maintidx
+    - makezero
+    - maligned
+    - musttag
+    - nestif
+    - nlreturn
+    - nonamedreturns
+    - nosnakecase
+    - nosprintfhostport
+    - paralleltest
+    - testpackage
+    - typecheck
+    - varnamelen
+    - whitespace
+    - wrapcheck
+    - wsl
