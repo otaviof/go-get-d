@@ -80,7 +80,13 @@ func (g *GoGetD) CloneRepository() error {
 		return err
 	}
 
-	gitCloneArgs := []string{"clone", g.repositoryURL.String(), g.dir}
+	gitCloneArgs := []string{
+		"clone",
+		"--depth",
+		"1",
+		g.repositoryURL.String(),
+		g.dir,
+	}
 	cmd := exec.Command("git", gitCloneArgs...)
 
 	fmt.Println("# Cloning repository...")
