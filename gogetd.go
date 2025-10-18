@@ -14,8 +14,9 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-// GoGetD represents the deprecated "go get -d" command, which use to download a given Golang module
-// and let it ready to work, basically a simple "git clone" into the GOPATH.
+// GoGetD represents the deprecated "go get -d" command, which use to download a
+// given Golang module and let it ready to work, basically a simple "git clone"
+// into the GOPATH.
 type GoGetD struct {
 	input         string   // raw package name
 	module        string   // valid golang import, extracted from "input"
@@ -24,16 +25,16 @@ type GoGetD struct {
 	fullDir       string   // printable directory full path
 }
 
-// ParseURL parses the input given to GoGetD in order to assert it's a valid URL, and to extract the
-// golang module name given it can be employed as a valid URL.
+// ParseURL parses the input given to GoGetD in order to assert it's a valid URL,
+// and to extract the golang module name given it can be employed as a valid URL.
 func (g *GoGetD) ParseURL() error {
 	u, err := url.Parse(g.input)
 	if err != nil {
 		return err
 	}
-	// when the first attempt does not extract scheme and hostname, we assume it's a regular "https"
-	// URL and try to parse again with a more strict URL parser shaking off left over input
-	// inconsistencies
+	// When the first attempt does not extract scheme and hostname, we assume it's
+	// a regular "https" URL and try to parse again with a more strict URL parser
+	// shaking off left over input inconsistencies
 	if u.Scheme == "" && u.Host == "" {
 		if u, err = url.ParseRequestURI(fmt.Sprintf("https://%s", g.input)); err != nil {
 			return err
@@ -111,7 +112,10 @@ func (g *GoGetD) CloneRepository() error {
 // InspectModulePackage tries to load the module, inspecting if it's correctly loading.
 func (g *GoGetD) InspectModulePackage() error {
 	fmt.Println("# Inspecting Go package...")
-	pkgs, err := packages.Load(&packages.Config{Mode: packages.NeedName, Dir: g.dir}, g.module)
+	pkgs, err := packages.Load(
+		&packages.Config{Mode: packages.NeedName, Dir: g.dir},
+		g.module,
+	)
 	if err != nil {
 		return err
 	}

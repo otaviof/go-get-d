@@ -5,11 +5,11 @@
 
 ## Abstract
 
-This application brings back the `go get -d` functionality to *modern* Go. If you're looking for a helper tool to organize Go projects under `${GOPATH}`, this is for you!
+This application restores the `go get -d` functionality for *modern* Go. If you're looking for a helper tool to organize Go projects under `${GOPATH}`, this is for you!
 
-The classic `go get -d` use to clone the import repository and build the application right away, placing the executable on the `${GOPATH}/bin` directory. Nowadays, you adopt the `go install` if the idea is only install the application executable.
+The classic `go get -d` used to clone the import repository and build the application right away, placing the executable in the `${GOPATH}/bin` directory. Nowadays, you would use `go install` if the goal is only to install the application executable.
 
-Thus `go-get-d` is most useful for a developer to quickly get started on a Go repository, using the "classic" `${GOPATH}` organization style.
+Therefore, `go-get-d` is most useful for a developer to quickly get started with a Go repository, using the "classic" `${GOPATH}` organization style.
 
 ## Installation
 
