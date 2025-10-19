@@ -32,8 +32,10 @@ func TestGoGetD_ParseURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := NewGoGetD(tt.input)
-			if err := g.ParseURL(); (err != nil) != tt.wantErr {
+			g := NewGoGetD()
+			g.input = tt.input
+
+			if err := g.parseURL(); (err != nil) != tt.wantErr {
 				t.Errorf("GoGetD.ParseURL() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -51,17 +53,18 @@ func TestGoGetD_ParseURL(t *testing.T) {
 }
 
 func TestGoGetD_ModuleDir(t *testing.T) {
-	g := NewGoGetD(selfModuleName)
+	g := NewGoGetD()
+	g.input = selfModuleName
 	g.module = selfModuleName
 
 	t.Run("LookupModuleDirInGopath", func(t *testing.T) {
-		err := g.LookupModuleDirInGopath()
+		err := g.lookupModuleDirInGopath()
 		require.NoError(t, err)
-		require.NotEmpty(t, g.dir)
+		require.NotEmpty(t, g.fullPath)
 	})
 
 	t.Run("ModuleDirExists", func(t *testing.T) {
-		exists := g.ModuleDirExits()
+		exists := g.moduleDirExits()
 		require.True(t, exists)
 	})
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/url"
@@ -11,6 +12,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -18,16 +21,39 @@ import (
 // given Golang module and let it ready to work, basically a simple "git clone"
 // into the GOPATH.
 type GoGetD struct {
-	input         string   // raw package name
-	module        string   // valid golang import, extracted from "input"
-	repositoryURL *url.URL // module repository URL
-	dir           string   // path to the module inside GOPATH
-	fullDir       string   // printable directory full path
+	inspect bool   // builds the target executable
+	path    bool   // prints out the module path in the system
+	verbose bool   // prints out verbose information
+	input   string // raw package name
+
+	fullPath       string   // full path to the module
+	relativeGoPath string   // relative path to GOPATH
+	module         string   // valid golang import name
+	repositoryURL  *url.URL // module repository URL
 }
 
-// ParseURL parses the input given to GoGetD in order to assert it's a valid URL,
+// PersistentFlags decorates the flag set with application flags.
+func (g *GoGetD) PersistentFlags(p *pflag.FlagSet) {
+	p.BoolVarP(&g.inspect, "inspect", "i", false,
+		"Inspect package, build the main executable")
+	p.BoolVarP(&g.path, "path", "p", false,
+		"Prints only the path to the module directory")
+	p.BoolVarP(&g.verbose, "verbose", "v", false,
+		"Add verbose information")
+}
+
+// logger prints the information when flag path is disabled.
+func (g *GoGetD) logger(format string, a ...any) {
+	if g.path {
+		return
+	}
+	fmt.Printf(format, a...)
+}
+
+// parseURL parses the input given to GoGetD in order to assert it's a valid URL,
 // and to extract the golang module name given it can be employed as a valid URL.
-func (g *GoGetD) ParseURL() error {
+func (g *GoGetD) parseURL() error {
+	g.logger("# Parsing repository for %q...\n", g.input)
 	u, err := url.Parse(g.input)
 	if err != nil {
 		return err
@@ -36,63 +62,61 @@ func (g *GoGetD) ParseURL() error {
 	// a regular "https" URL and try to parse again with a more strict URL parser
 	// shaking off left over input inconsistencies
 	if u.Scheme == "" && u.Host == "" {
-		if u, err = url.ParseRequestURI(fmt.Sprintf("https://%s", g.input)); err != nil {
+		u, err = url.ParseRequestURI(fmt.Sprintf("https://%s", g.input))
+		if err != nil {
 			return err
 		}
 	}
 
 	g.module = urlToGoModule(u)
+	g.logger("# Package module: %q\n", g.module)
 	g.repositoryURL = u
-	fmt.Printf("# Go Module: %q\n", g.module)
+	g.logger("# Repository URL: %q\n", g.repositoryURL)
 	return nil
 }
 
-// LookupModuleDirInGopath based on GOPATH defines the go module directory path.
-func (g *GoGetD) LookupModuleDirInGopath() error {
+// lookupModuleDirInGopath based on GOPATH defines the go module directory path.
+func (g *GoGetD) lookupModuleDirInGopath() error {
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return fmt.Errorf("GOPATH environment variable is not set")
 	}
 
-	g.dir = path.Join(gopath, path.Join("src", g.module))
-	g.fullDir = strings.ReplaceAll(g.dir, gopath, "${GOPATH}")
-	fmt.Printf("# Directory: %q\n", g.fullDir)
+	g.fullPath = path.Join(gopath, path.Join("src", g.module))
+	g.relativeGoPath = strings.ReplaceAll(g.fullPath, gopath, "${GOPATH}")
+
+	g.logger("# Package directory full path: %q\n", g.relativeGoPath)
 	return nil
 }
 
-// PrintChangeDir prints the full directory path with "cd" command in front.
-func (g *GoGetD) PrintChangeDir() {
-	fmt.Printf("cd %q\n", g.fullDir)
-}
-
-// ModuleDirExits checks if the module directory path exists.
-func (g *GoGetD) ModuleDirExits() bool {
-	info, err := os.Stat(g.dir)
+// moduleDirExits checks if the module directory path exists.
+func (g *GoGetD) moduleDirExits() bool {
+	info, err := os.Stat(g.fullPath)
 	if err != nil && os.IsNotExist(err) {
 		return false
 	}
 	return info != nil && info.IsDir()
 }
 
-// CloneRepository executes "git clone" into the GOPPATH based module directory.
-func (g *GoGetD) CloneRepository() error {
-	err := os.MkdirAll(g.dir, 0o755)
+// cloneRepository executes "git clone" into the GOPATH based module directory.
+func (g *GoGetD) cloneRepository(ctx context.Context) error {
+	err := os.MkdirAll(g.fullPath, 0o755)
 	if err != nil {
 		return err
 	}
 
-	gitCloneArgs := []string{
+	/* #nosec G204 */
+	git := exec.CommandContext(
+		ctx,
+		"git",
 		"clone",
 		"--depth",
 		"1",
 		g.repositoryURL.String(),
-		g.dir,
-	}
-	cmd := exec.Command("git", gitCloneArgs...)
-
-	fmt.Println("# Cloning repository...")
-	fmt.Printf("# $ %s\n", cmd.String())
-	out, err := cmd.CombinedOutput()
+		g.fullPath,
+	)
+	g.logger("# $ %s %s\n", git.Path, strings.Join(git.Args, " "))
+	out, err := git.CombinedOutput()
 	if err != nil {
 		return err
 	}
@@ -104,16 +128,17 @@ func (g *GoGetD) CloneRepository() error {
 		if err == io.EOF {
 			break
 		}
-		fmt.Printf("## %s\n", line)
+		g.logger("## %s\n", line)
 	}
 	return nil
 }
 
-// InspectModulePackage tries to load the module, inspecting if it's correctly loading.
-func (g *GoGetD) InspectModulePackage() error {
-	fmt.Println("# Inspecting Go package...")
+// inspectModulePackage tries to load the module, inspecting if it's correctly
+// loading. Which means building the "main" package.
+func (g *GoGetD) inspectModulePackage() error {
+	g.logger("# Inspecting Go %q package...\n", g.fullPath)
 	pkgs, err := packages.Load(
-		&packages.Config{Mode: packages.NeedName, Dir: g.dir},
+		&packages.Config{Mode: packages.NeedName, Dir: g.fullPath},
 		g.module,
 	)
 	if err != nil {
@@ -124,13 +149,62 @@ func (g *GoGetD) InspectModulePackage() error {
 	}
 	lenPkgs := len(pkgs)
 	if lenPkgs != 1 {
-		return fmt.Errorf("found %d packages for module named %q", lenPkgs, g.module)
+		return fmt.Errorf("found %d packages for module named %q",
+			lenPkgs, g.module)
 	}
-	fmt.Println("# All done!")
+	return nil
+}
+
+// PreRunE parse the flags and ensures the input module name is informed.
+func (g *GoGetD) PreRunE(_ *cobra.Command, args []string) error {
+	if g.path && g.verbose {
+		return fmt.Errorf("--path and --verbose flag are incompatible")
+	}
+	if len(args) != 1 {
+		return fmt.Errorf("expected exactly one argument, got %d", len(args))
+	}
+	g.input = args[0]
+	return nil
+}
+
+// RunE runs the main application logic.
+func (g *GoGetD) RunE(cmd *cobra.Command, _ []string) error {
+	if g.input == "" {
+		return fmt.Errorf("no input module name is informed")
+	}
+
+	err := g.parseURL()
+	if err != nil {
+		return err
+	}
+
+	if err = g.lookupModuleDirInGopath(); err != nil {
+		return err
+	}
+
+	if g.path {
+		fmt.Println(g.fullPath)
+	} else {
+		fmt.Printf("cd %q\n", g.relativeGoPath)
+	}
+
+	if !g.moduleDirExits() {
+		if err = g.cloneRepository(cmd.Context()); err != nil {
+			return err
+		}
+	}
+
+	if g.inspect {
+		if err = g.inspectModulePackage(); err != nil {
+			return err
+		}
+	}
+
+	g.logger("# All done!\n")
 	return nil
 }
 
 // NewGoGetD instantiate GoGetD passing the raw input.
-func NewGoGetD(input string) *GoGetD {
-	return &GoGetD{input: input}
+func NewGoGetD() *GoGetD {
+	return &GoGetD{}
 }
