@@ -20,22 +20,17 @@ jobs:
     name: test-unit
     runs-on: ubuntu-latest
     steps:
-      # checking the code on the location that will become the GOPATH on the next steps, since the
-      # GOPATH will be based on the workspace default location, it can use a relative path to
-      # checkout
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
         with:
           path: src/github.com/otaviof/go-get-d
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v6
         with:
-          go-version: 1.20.x
-      # running the tests using a locally defined GOPATH as the default workspace directory, and also
-      # making sure the step commands will be executed in the same location where the code is
-      # located
+          go-version: stable
       - name: test-unit
         env:
           GOPATH: ${{ github.workspace }}
           GO111MODULE: off
         working-directory: src/github.com/otaviof/go-get-d
         run: |
+          make
           make test-unit
