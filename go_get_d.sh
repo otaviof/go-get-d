@@ -1,12 +1,28 @@
-# go_get_d SHell function to invoke "go-get-d", collect the output of the command
-# and switch the current working directory into it.
-function go_get_d() {
-    local project_path
-    project_path=$(go-get-d --path "${1}")
-    if [ $? -ne 0 ]; then
-        echo "# Error: Failed to retrieve path using go-get-d." >&2
+# go_get_d Shell function to invoke "go-get-d", collect the output of the command
+# and switch the current working directory into it. The function takes a single
+# input module name.
+go_get_d() {
+    if [[ " ${@} " =~ " --help " ]]; then
+        go-get-d --help
+        return 0
+    fi
+    if [ -z "${1}" ]; then
+        echo "# Error: No module provided. " \
+            "Use 'go-get-d --help' for more information!" >&2
         return 1
     fi
-    echo "# Changing directory to ${project_path}"
-    cd "${project_path}"
+    local output
+    output=$(go-get-d --path ${@}) || go_get_d_exit="${?}"
+    if [ "${go_get_d_exit:-0}" -ne 0 ]; then
+        echo "# Error: Failed to retrieve path using go-get-d." \
+            "Exit code '${go_get_d_exit}'!" >&2
+        echo ${output} >&2
+        return 1
+    fi
+    echo "# Changing directory into '${output}'..."
+    cd "${output}" || {
+        echo "# Error: Unable to change directory to \"${output}\"!" >&2
+        return 1
+    }
+    return 0
 }

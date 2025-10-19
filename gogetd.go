@@ -136,7 +136,7 @@ func (g *GoGetD) cloneRepository(ctx context.Context) error {
 // inspectModulePackage tries to load the module, inspecting if it's correctly
 // loading. Which means building the "main" package.
 func (g *GoGetD) inspectModulePackage() error {
-	g.logger("# Inspecting Go %q package...\n", g.fullPath)
+	g.logger("# Inspecting Go %q package...\n", g.module)
 	pkgs, err := packages.Load(
 		&packages.Config{Mode: packages.NeedName, Dir: g.fullPath},
 		g.module,
@@ -145,7 +145,7 @@ func (g *GoGetD) inspectModulePackage() error {
 		return err
 	}
 	if packages.PrintErrors(pkgs) > 0 {
-		return fmt.Errorf("unable to load package %q", g.input)
+		return fmt.Errorf("unable to load package %q from %q", g.module, g.input)
 	}
 	lenPkgs := len(pkgs)
 	if lenPkgs != 1 {
@@ -204,7 +204,7 @@ func (g *GoGetD) RunE(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-// NewGoGetD instantiate GoGetD passing the raw input.
+// NewGoGetD instantiate GoGetD.
 func NewGoGetD() *GoGetD {
 	return &GoGetD{}
 }
